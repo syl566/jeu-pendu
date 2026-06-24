@@ -1,0 +1,1 @@
+"""Package hangman - Jeu du Pendu CLI."""
