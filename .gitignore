@@ -4,3 +4,5 @@ pycache/
 .vscode/
 .pytest_cache/
 coverage/
+.env
+scores.db

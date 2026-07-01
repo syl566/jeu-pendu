@@ -1,6 +1,15 @@
 """Point d'entrée principal du jeu du Pendu."""
 
-from hangman import Display, HangmanGame, InputValidator, WordLoader
+from hangman import Display, HangmanGame, InputValidator, WordLoader, sauvegarder_score, afficher_classement
+
+
+def demander_pseudo() -> str:
+    """Demande et retourne le pseudo du joueur (non vide)."""
+    while True:
+        pseudo = input("Entrez votre pseudo : ").strip()
+        if pseudo:
+            return pseudo
+        print("Le pseudo ne peut pas être vide.")
 
 
 def jouer_partie(
@@ -16,7 +25,6 @@ def jouer_partie(
         display.afficher_mot_masque(game.mot_secret, game.lettres_trouvees)
         display.afficher_lettres_proposees(game.lettres_proposees)
 
-        # Demander une lettre valide
         while True:
             try:
                 saisie = input("\nProposez une lettre : ")
@@ -25,7 +33,6 @@ def jouer_partie(
             except ValueError as e:
                 display.afficher_erreur(str(e))
 
-        # Traiter la lettre
         if game.proposer_lettre(lettre):
             print(f"Bien joué ! La lettre '{lettre}' est dans le mot.")
         else:
@@ -47,20 +54,31 @@ def main() -> None:
     display = Display()
     validator = InputValidator()
 
-    # Première partie
+    print("\n=== JEU DU PENDU ===")
+    joueur = demander_pseudo()
+
     mot_secret = word_loader.get_random_word()
     game = HangmanGame(mot_secret, erreurs_max=6)
 
     while True:
         jouer_partie(game, display, validator)
 
-        # Demander si on rejoue
+        # Sauvegarder le score dans Supabase
+        try:
+            sauvegarder_score(joueur, game.mot_secret, game.victoire, game.nombre_erreurs)
+            print("Score enregistré !")
+        except Exception as e:
+            print(f"(Score non enregistré : {e})")
+
+        # Afficher le classement
+        afficher_classement()
+
         if display.demander_rejouer():
             validator.reset()
             mot_secret = word_loader.get_random_word()
             game.reset(mot_secret)
         else:
-            print("\nMerci d'avoir joué ! Au revoir.")
+            print(f"\nMerci d'avoir joué, {joueur} ! Au revoir.")
             break
 
 
